@@ -8,7 +8,7 @@ def d_sigmoid(x):
 def squaredErrorBackpropagation(expectedResult, calculatedResult):
 	return -2*(expectedResult-calculatedResult)
 	
-class NeuronLayer:
+class DenseLayer:
 	def __init__(self, inputSize, layerSize):
 		self.weights = np.random.normal(loc=0, scale=1, size=(inputSize+1, layerSize))
 		
@@ -26,8 +26,8 @@ class NeuronLayer:
 		weightSum = self.weights.sum(axis=1)
 		return np.matmul(backpropagation.reshape(-1, 1), weightSum[:weightSum.shape[0]-1].reshape(1, -1)).sum(axis=0)
 		
-layer1 = NeuronLayer(2, 5)
-layer2 = NeuronLayer(5, 1)
+layer1 = DenseLayer(2, 5)
+layer2 = DenseLayer(5, 1)
 
 medianError = 0
 
