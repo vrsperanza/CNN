@@ -23,11 +23,11 @@ class NeuronLayer:
 		inputAndTheta = np.append(self.input, [1], axis = 0)
 		self.weights -= step*np.matmul(inputAndTheta.reshape(-1, 1), backpropagation.reshape(1, -1))
 
-		weightSumAverage = self.weights.sum(axis=1)/self.weights.shape[0]
-		return np.matmul(backpropagation.reshape(-1, 1), weightSumAverage[:weightSumAverage.shape[0]-1].reshape(1, -1)).sum(axis=0)/backpropagation.shape[0]
+		weightSum = self.weights.sum(axis=1)
+		return np.matmul(backpropagation.reshape(-1, 1), weightSum[:weightSum.shape[0]-1].reshape(1, -1)).sum(axis=0)
 		
-layer1 = NeuronLayer(2, 2)
-layer2 = NeuronLayer(2, 1)
+layer1 = NeuronLayer(2, 5)
+layer2 = NeuronLayer(5, 1)
 
 medianError = 0
 
@@ -35,8 +35,7 @@ for train in range(100000):
 	input = np.array((np.random.randint(0, 2), np.random.randint(0, 2)))
 	output = input[0] ^ input[1]
 	
-	ans = layer1.forward(input)
-	ans = layer2.forward(ans)
+	ans = layer2.forward(layer1.forward(input))
 	
 	medianError = (99*medianError+np.power(output-ans, 2))/100
 	
@@ -45,4 +44,5 @@ for train in range(100000):
 	step = 0.1
 	layer1.backpropagation(layer2.backpropagation(err, step), step)
 	
-	print(train, input, output, ans, (ans > 0.5) == (output > 0.5), medianError)
+	if train%1000 is 0:
+		print(train, input, output, ans, (ans > 0.5) == (output > 0.5), medianError)
