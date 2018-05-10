@@ -53,9 +53,10 @@ class ConvolutionLayer:
 		return self.output
 		
 	def backpropagation(self, backpropagation, step):
-		for kernel in self.kernels:
+		for k in range(len(backpropagation)):
+			kernel = self.kernels[k]
 			for i in range(kernel.shape[0]):
 				for j in range(kernel.shape[1]):
-					kernel[i,j] -= step*np.mean(np.dot(self.input[i:i+backpropagation.shape[0],j:j+backpropagation.shape[0]], backpropagation))
+					kernel[i,j] -= step*np.mean(np.dot(self.input[i:i+backpropagation[k].shape[0],j:j+backpropagation[k].shape[1]], backpropagation[k]))
 		
 		# TO-DO: optionally propagate error
