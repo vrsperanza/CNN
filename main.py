@@ -5,6 +5,11 @@ import imageio
 import matplotlib.pyplot as plt
 import random
 
+def oneHot(value, max):
+	arr = np.zeros(max)
+	arr[value] = 1
+	return arr
+
 def fourierConv(img, filter):
 	f = np.zeros(img.shape)	
 	f[:filter.shape[0],:filter.shape[1]] = filter
@@ -43,7 +48,9 @@ def ConvolutionTest():
 	
 	
 	step = 5e-5
+	
 	layer = ConvolutionLayer((3,3), 1)
+	
 	medianError = 1
 	for i in range(100000):
 		imgOrig = trainImages[random.randint(0, len(trainImages)-1)].astype(np.float32)/255;
@@ -72,4 +79,34 @@ def ConvolutionTest():
 	plt.imshow(conv[0], cmap='gray')
 	plt.show()
 
-ConvolutionTest();
+def MLPMNISTTest():
+	trainImages = mnist.trainingImages()
+	trainLabels = mnist.trainingLabels()
+	
+	denseLayer1 = DenseLayer(28*28, 100)
+	denseLayer2 = DenseLayer(100, 3)
+	
+	medianError = 0
+
+	for train in range(1000000):
+		trainCase = random.randint(0, len(trainImages)-1)
+		
+		if(trainLabels[trainCase] >= 3):
+			train -= 1
+			continue
+		
+		input = trainImages[trainCase].ravel()
+		output = oneHot(trainLabels[trainCase], 3)
+		
+		
+		ans = denseLayer2.forward(denseLayer1.forward(input))
+		
+		medianError = (99*medianError+abs(output-ans))/100
+		
+		err = squaredErrorBackpropagation(output, ans)
+		
+		step = 0.01
+		denseLayer1.backpropagation(denseLayer2.backpropagation(err, step), step)
+		
+		if train%100 is 0:
+			print(train, output, ans, medianError.mean())
