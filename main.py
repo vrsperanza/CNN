@@ -46,7 +46,6 @@ def ConvolutionTest():
 	
 	kernelToApproach = np.matrix([[1/9,1/9,1/9],[1/9,1/9,1/9],[1/9,1/9,1/9]])
 	
-	
 	step = 5e-5
 	
 	layer = ConvolutionLayer((3,3), 1)
@@ -79,34 +78,33 @@ def ConvolutionTest():
 	plt.imshow(conv[0], cmap='gray')
 	plt.show()
 
-def MLPMNISTTest():
+def MLPMNISTTest(step = 0.01):
 	trainImages = mnist.trainingImages()
 	trainLabels = mnist.trainingLabels()
 	
-	denseLayer1 = DenseLayer(28*28, 100)
-	denseLayer2 = DenseLayer(100, 3)
+	cnn = CNN()
+	cnn.addLayer(DenseLayer(28*28, 20))
+	cnn.addLayer(Sigmoid())
+	cnn.addLayer(DenseLayer(20, 2))
+	cnn.addLayer(Sigmoid())
 	
 	medianError = 0
 
 	for train in range(1000000):
 		trainCase = random.randint(0, len(trainImages)-1)
 		
-		if(trainLabels[trainCase] >= 3):
+		if(trainLabels[trainCase] >= 2):
 			train -= 1
 			continue
 		
 		input = trainImages[trainCase].ravel()
-		output = oneHot(trainLabels[trainCase], 3)
+		label = oneHot(trainLabels[trainCase], 2)
 		
+		ans = cnn.train(input, label, step)
 		
-		ans = denseLayer2.forward(denseLayer1.forward(input))
-		
-		medianError = (99*medianError+abs(output-ans))/100
-		
-		err = squaredErrorBackpropagation(output, ans)
-		
-		step = 0.01
-		denseLayer1.backpropagation(denseLayer2.backpropagation(err, step), step)
+		medianError = (99*medianError+abs(label-ans))/100
 		
 		if train%100 is 0:
-			print(train, output, ans, medianError.mean())
+			print(train, label, ans, medianError.mean())
+			
+MLPMNISTTest()

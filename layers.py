@@ -1,13 +1,15 @@
 import numpy as np
 
-def sigmoid(x):
-	return 1/(1+np.exp(-x))
-
-def d_sigmoid(x):
-	return x*(1-x)
-
 def squaredErrorBackpropagation(expectedResult, calculatedResult):
 	return -2*(expectedResult-calculatedResult)
+	
+class Sigmoid:
+	def forward(self, input):
+		self.output = 1/(1+np.exp(-input))
+		return self.output
+		
+	def backward(self, backpropagation, step):
+		return backpropagation*self.output*(1-self.output)
 	
 class DenseLayer:
 	def __init__(self, inputSize, layerSize):
@@ -15,12 +17,10 @@ class DenseLayer:
 		
 	def forward(self, input):
 		self.input = input
-		self.output = sigmoid(np.matmul(np.append(input, [1], axis = 0), self.weights))
+		self.output = np.matmul(np.append(input, [1], axis = 0), self.weights)
 		return self.output
-
-	def backpropagation(self, backpropagation, step):	
-		backpropagation = backpropagation*d_sigmoid(self.output)
-	
+		
+	def backward(self, backpropagation, step):	
 		inputAndTheta = np.append(self.input, [1], axis = 0)
 		self.weights -= step*np.matmul(inputAndTheta.reshape(-1, 1), backpropagation.reshape(1, -1))
 
@@ -52,7 +52,7 @@ class ConvolutionLayer:
 								int(kernel.shape[1]/2):int((matrix.shape[1]-kernel.shape[1]/2)+1)]))
 		return self.output
 		
-	def backpropagation(self, backpropagation, step):
+	def backward(self, backpropagation, step):
 		for k in range(len(backpropagation)):
 			kernel = self.kernels[k]
 			for i in range(kernel.shape[0]):
@@ -60,3 +60,29 @@ class ConvolutionLayer:
 					kernel[i,j] -= step*np.mean(np.dot(self.input[i:i+backpropagation[k].shape[0],j:j+backpropagation[k].shape[1]], backpropagation[k]))
 		
 		# TO-DO: optionally propagate error
+
+class MaxPoolLayer:
+	def __init__(self, poolShape, poolStride):
+		self.poolShape = poolShape
+		self.poolStride = poolStride
+		
+class CNN:
+	def __init__(self):
+		self.layers = []
+		
+	def addLayer(self, layer):
+		self.layers.append(layer)
+		
+	def estimate(self, input):
+		output = input
+		for layer in self.layers:
+			output = layer.forward(output)
+		return output
+	
+	def train(self, input, label, step):
+		output = self.estimate(input)
+		backpropagation = squaredErrorBackpropagation(label, output)
+		for layer in reversed(self.layers):
+			backpropagation = layer.backward(backpropagation, step)
+		
+		return output
