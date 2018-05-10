@@ -85,7 +85,7 @@ def MLPMNISTTest(step = 0.01):
 	cnn = CNN()
 	cnn.addLayer(DenseLayer(28*28, 20))
 	cnn.addLayer(Sigmoid())
-	cnn.addLayer(DenseLayer(20, 2))
+	cnn.addLayer(DenseLayer(20, 3))
 	cnn.addLayer(Sigmoid())
 	
 	medianError = 0
@@ -93,18 +93,18 @@ def MLPMNISTTest(step = 0.01):
 	for train in range(1000000):
 		trainCase = random.randint(0, len(trainImages)-1)
 		
-		if(trainLabels[trainCase] >= 2):
+		if(trainLabels[trainCase] >= 3):
 			train -= 1
 			continue
 		
 		input = trainImages[trainCase].ravel()
-		label = oneHot(trainLabels[trainCase], 2)
+		label = oneHot(trainLabels[trainCase], 3)
 		
 		ans = cnn.train(input, label, step)
 		
 		medianError = (99*medianError+abs(label-ans))/100
 		
-		if train%100 is 0:
+		if train%1000 is 0:
 			print(train, label, ans, medianError.mean())
 			
 MLPMNISTTest()

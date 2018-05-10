@@ -10,7 +10,17 @@ class Sigmoid:
 		
 	def backward(self, backpropagation, step):
 		return backpropagation*self.output*(1-self.output)
+
+class ReLU:
+	def forward(self, input):
+		self.output = np.maximum(np.zeros_like(input), input)
+		return self.output
+		
+	def backward(self, backpropagation, step):
+		self.output[self.output > 0] = 1
+		return self.output
 	
+		
 class DenseLayer:
 	def __init__(self, inputSize, layerSize):
 		self.weights = np.random.normal(loc=0, scale=1, size=(inputSize+1, layerSize))
