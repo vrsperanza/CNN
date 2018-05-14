@@ -16,6 +16,13 @@ def oneHotEquals(a, b):
 			return False
 	return True
 	
+def classEquals(estimate, correctClass):
+	max = 0
+	for i in range(len(estimate)):
+		if estimate[i] > estimate[max]:
+			max = i
+	return max == correctClass
+	
 def MNISTtestCNN(cnn, classes=3):
 	trainImages = mnist.testingImages()
 	trainLabels = mnist.testingLabels()
@@ -31,7 +38,7 @@ def MNISTtestCNN(cnn, classes=3):
 		label = oneHot(trainLabels[i], classes)
 		
 		tot += 1
-		if oneHotEquals(cnn.estimate(input), label):
+		if classEquals(cnn.estimate(input), trainLabels[i]):
 			acc += 1
 			
 	print(acc, tot, acc/tot)
@@ -82,7 +89,7 @@ def MLPXorTest():
 		if train%1000 is 0:
 			print(train, input, label, ans, (ans > 0.5) == (label > 0.5), medianError)
 			
-def MLPMNISTTest(step = 0.01, hiddenSize=10, classes=2, maxIterations=200000):
+def MLPMNISTTest(step = 0.01, hiddenSize=20, classes=10, maxIterations=50000):
 	cnn = CNN()
 	cnn.addLayer(RavelLayer())
 	cnn.addLayer(DenseLayer(28*28, hiddenSize))
