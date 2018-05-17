@@ -3,6 +3,15 @@ import math
 
 def squaredErrorBackpropagation(expectedResult, calculatedResult):
 	return -2*(expectedResult-calculatedResult)
+
+class MatrixesLayer:
+	def forward(self, input):
+		p = np.empty((1, input.shape[0], input.shape[1]))
+		p[0] = input
+		return p
+		
+	def backward(self, backpropagation, step):
+		return 0
 	
 class SigmoidLayer:
 	def forward(self, input):
@@ -43,7 +52,7 @@ class DenseLayer:
 		self.weights -= step*np.matmul(inputAndTheta.reshape(-1, 1), backpropagation.reshape(1, -1))
 
 		weightMean = self.weights.mean(axis=1)
-		return np.matmul(backpropagation.reshape(-1, 1), weightMean[:weightMean.shape[0]-1].reshape(1, -1)).sum(axis=0)
+		return np.matmul(backpropagation.reshape(-1, 1), weightMean[:weightMean.shape[0]-1].reshape(1, -1)).mean(axis=0)
 		
 class ConvolutionLayer:
 	def __init__(self, kernelShape, kernelAmount):
@@ -76,7 +85,7 @@ class ConvolutionLayer:
 			kernel = self.kernels[k]
 			for i in range(kernel.shape[0]):
 				for j in range(kernel.shape[1]):
-					kernel[i,j] -= step*np.mean(np.dot(self.input[i:i+backpropagation[k].shape[0],j:j+backpropagation[k].shape[1]], backpropagation[k]))
+					kernel[i,j] -= step*np.mean(np.dot(self.input[i:i+backpropagation[k].shape[0],j:j+backpropagation[k].shape[1]], backpropagation[k]))/(backpropagation[k].shape[0]*backpropagation[k].shape[1])
 		
 		# TO-DO: Backpropagate error
 
@@ -109,7 +118,7 @@ class MaxPoolLayer:
 					slice = backpropMatrices[k, poolStride[0]*i:poolStride[0]*(i+1),poolStride[1]*j:poolStride[1]*(j+1)]
 					
 					maxInd =  np.unravel_index(np.argmax(slice), slice.shape)
-					backpropMatrices[k, poolStride[0]*i+maxInd[0],poolStride[1]*j+maxInd[1]] += 1
+					backpropMatrices[k, poolStride[0]*i+maxInd[0],poolStride[1]*j+maxInd[1]] += backpropagation[k,i,j]
 		return backpropMatrices
 		
 class CNN:

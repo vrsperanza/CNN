@@ -23,14 +23,17 @@ def classEquals(estimate, correctClass):
 			max = i
 	return max == correctClass
 	
-def MNISTtestCNN(cnn, classes=3):
+def MNISTtestCNN(cnn, classes=3, tests=-1):
 	trainImages = mnist.testingImages()
 	trainLabels = mnist.testingLabels()
 	
 	acc = 0
 	tot = 0
-	
+	iters = len(trainImages) if tests is -1 else tests
 	for i in range(len(trainImages)):
+		if(tot >= iters):
+			break
+			
 		if(trainLabels[i] >= classes):
 			continue
 			
@@ -47,7 +50,7 @@ def MNISTtrainCNN(cnn, step=0.000001, maxIterations=50000, classes=3):
 	trainImages = mnist.trainingImages()
 	trainLabels = mnist.trainingLabels()
 	
-	medianError = 0
+	medianError = 1
 	train = 0
 	
 	while train < maxIterations:
@@ -56,7 +59,6 @@ def MNISTtrainCNN(cnn, step=0.000001, maxIterations=50000, classes=3):
 		if(trainLabels[trainCase] >= classes):
 			continue
 			
-		train += 1
 		
 		input = trainImages[trainCase]
 		label = oneHot(trainLabels[trainCase], classes)
@@ -65,8 +67,12 @@ def MNISTtrainCNN(cnn, step=0.000001, maxIterations=50000, classes=3):
 	
 		medianError = (99*medianError+abs(label-ans))/100
 		
-		if train%1000 is 0:
+		if train%100 is 0:
 			print(train, label, ans, medianError.mean())
+		if train%1000 is 0:
+			MNISTtestCNN(cnn, classes, tests = 100)
+			
+		train += 1
 	MNISTtestCNN(cnn, classes)
 
 def MLPXorTest():
@@ -89,7 +95,7 @@ def MLPXorTest():
 		if train%1000 is 0:
 			print(train, input, label, ans, (ans > 0.5) == (label > 0.5), medianError)
 			
-def MLPMNISTTest(step = 0.01, hiddenSize=20, classes=10, maxIterations=50000):
+def MLPMNISTTest(step = 0.005, hiddenSize=50, classes=2, maxIterations=100000):
 	cnn = CNN()
 	cnn.addLayer(RavelLayer())
 	cnn.addLayer(DenseLayer(28*28, hiddenSize))
@@ -99,19 +105,22 @@ def MLPMNISTTest(step = 0.01, hiddenSize=20, classes=10, maxIterations=50000):
 	
 	MNISTtrainCNN(cnn, step = step, classes=classes, maxIterations=maxIterations)
 
-def CNNMNISTTest(step = 0.01):
+def CNNMNISTTest(step = 0.001, maxIterations = 50000, classes = 2):
 	cnn = CNN()
 	
-	cnn.addLayer(ConvolutionLayer((3,3), 4))
-	cnn.addLayer(ReLULayer())
+	cnn.addLayer(ConvolutionLayer((3,3), 1))
+	cnn.addLayer(SigmoidLayer())
 	cnn.addLayer(MaxPoolLayer((2,2), (2,2)))
 	
 	cnn.addLayer(RavelLayer())
-	cnn.addLayer(DenseLayer(4*14*14, 10))
-	cnn.addLayer(SigmoidLayer())
-	cnn.addLayer(DenseLayer(10, 2))
+	
+	cnn.addLayer(DenseLayer(1*14*14, 300))
 	cnn.addLayer(SigmoidLayer())
 	
-	MNISTtrainCNN(cnn, classes=2)
+	cnn.addLayer(DenseLayer(300, 100))
+	cnn.addLayer(SigmoidLayer())
+	cnn.addLayer(DenseLayer(100, classes))
+	
+	MNISTtrainCNN(cnn, classes = classes, step = step, maxIterations = maxIterations)
 
-MLPMNISTTest()
+CNNMNISTTest()
