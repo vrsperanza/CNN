@@ -81,13 +81,35 @@ class ConvolutionLayer:
 		return self.output
 		
 	def backward(self, backpropagation, step):
+# Começo da cálculo do backward
+		for i in range(int(self.kernelShape[0])):
+			for j in range(int(self.kernelShape[1])):
+				KernelReverse[i][j] = self.kernels[self.kernelShape[0] - 1 - i][self.kernelShape[1] - 1 - j]
+
+		matrix = np.pad(backpropagation, (int(self.kernelShape[0]/2), int(self.kernelShape[1]/2)), 'constant')
+		
+		matrixFFT = np.fft.fft2(matrix)
+		
+		self.input = matrix
+		InputBackpropagation = np.empty((len(KernelReverse), backpropagation.shape[0], backpropagation.shape[1]))
+		filter = np.zeros(matrix.shape)
+		for k in range(len(KernelReverse)):
+			kernel = KernelReverse[k]
+			filter[:kernel.shape[0],:kernel.shape[1]] = kernel
+			kernelFFT = np.fft.fft2(filter)
+
+			InputBackpropagation[k] = np.real(np.fft.ifft2(np.multiply(matrixFFT, kernelFFT)) \
+									[int(kernel.shape[0]/2):int((matrix.shape[0]-kernel.shape[0]/2)+1), 
+									int(kernel.shape[1]/2):int((matrix.shape[1]-kernel.shape[1]/2)+1)])
+#Fim do cálculo do backward
+
 		for k in range(len(backpropagation)):
 			kernel = self.kernels[k]
 			for i in range(kernel.shape[0]):
 				for j in range(kernel.shape[1]):
 					kernel[i,j] -= step*np.mean(np.dot(self.input[i:i+backpropagation[k].shape[0],j:j+backpropagation[k].shape[1]], backpropagation[k]))/(backpropagation[k].shape[0]*backpropagation[k].shape[1])
 		
-		# TO-DO: Backpropagate error
+		return InputBackpropagation #Retorno adicionado
 
 class MaxPoolLayer:
 	def __init__(self, poolShape, poolStride):
